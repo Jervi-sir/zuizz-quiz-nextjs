@@ -5,8 +5,9 @@ import { useQuiz } from '@/context/QuizContext';
 import { QuestionCard } from '@/components/QuestionCard';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { FeedbackDrawer } from '@/components/custom/FeedbackDrawer';
 
 export default function TopicQuestions({ params }: { params: { id: string } }) {
   const {
@@ -77,17 +78,25 @@ export default function TopicQuestions({ params }: { params: { id: string } }) {
               />
             ))}
           </div>
-          <div className="flex justify-end pt-4">
-            {!isAnswered ? (
+          {isAnswered && (
+            <FeedbackDrawer
+              isCorrect={isCorrect!}
+              description={
+                isCorrect
+                  ? "Well done! You got the right answer."
+                  : "Better luck next time! See the correct answer above."
+              }
+              score={score}
+              onNext={goToNextQuestion}
+            />
+          )}
+          {!isAnswered && (
+            <div className="flex justify-end pt-4">
               <Button onClick={submitAnswer} disabled={selectedAnswers.length === 0}>
                 Answer
               </Button>
-            ) : (
-              <Button onClick={goToNextQuestion}>
-                {currentQuestionIndex < questions.length - 1 ? 'Next' : 'Finish'}
-              </Button>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
