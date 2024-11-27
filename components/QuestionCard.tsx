@@ -24,7 +24,7 @@ export const QuestionCard = ({
   return (
     <button
       onClick={disabled ? undefined : onChoose}
-      className={`group w-full border ${
+      className={`group w-full border rounded-xl ${
         selected
           ? isCorrect === true
             ? 'border-green-500 bg-green-50'
@@ -38,8 +38,8 @@ export const QuestionCard = ({
       disabled={disabled}
     >
       <Card>
-        <CardHeader className="p-4">
-          <div className="relative flex items-start gap-3">
+        <CardHeader className="p-4 rounde-xl">
+          <div className="relative flex items-start gap-3 rounded">
             <Button variant="outline" size="sm">
               {Alphabet[index]}
             </Button>

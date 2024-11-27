@@ -4,7 +4,6 @@ export const topics = [
     name: "معايير تشكل العالم بعد الحرب العالمية الثانية",
     icon: "assets/images/topics/icon-history.svg",
     questions: [
-      // Section 1: Political and Historical Criteria
       {
         id: 1,
         type: "choose_multiple",
@@ -27,19 +26,6 @@ export const topics = [
         ],
       },
       {
-        id: 4,
-        type: "correct_incorrect",
-        question: "اختر الجملة الخاطئة وقم بتصحيحها",
-        incorrectOptions: [
-          "القضاء على هيئة الأمم المتحدة",
-          "ظهور الدكتاتوريات",
-        ],
-        corrections: [
-          "ظهور هيئة الأمم المتحدة",
-          "القضاء على الدكتاتوريات",
-        ],
-      },
-      {
         id: 3,
         type: "order_answers",
         question: "أعد ترتيب الكلمات التالية",
@@ -52,7 +38,20 @@ export const topics = [
           "على", 
           "ظهور",
         ],
-        correctOrder: [6, 0, 1, 2, 5, 3, 4], // Correct sequence of indices
+        correctOrder: [6, 0, 1, 2, 5, 3, 4],
+      },
+      {
+        id: 4,
+        type: "correct_incorrect",
+        question: "اختر الجملة الخاطئة وقم بتصحيحها",
+        incorrectOptions: [
+          "القضاء على هيئة الأمم المتحدة",
+          "ظهور الدكتاتوريات",
+        ],
+        corrections: [
+          "ظهور هيئة الأمم المتحدة",
+          "القضاء على الدكتاتوريات",
+        ],
       },
       {
         id: 5,

@@ -11,6 +11,8 @@ import { FeedbackDrawer } from '@/components/custom/FeedbackDrawer';
 import { ChooseAnswer } from './choose-answer';
 import { FillGap } from './fill-gap';
 import { CorrectIncorrect } from './correct-incorrect';
+import { OrderAnswers } from './order-answer';
+import { ClassifyAnswers } from './classify-answers';
 
 export default function TopicQuestions({ params }: { params: { id: string } }) {
   const {
@@ -64,29 +66,62 @@ export default function TopicQuestions({ params }: { params: { id: string } }) {
             {
               (currentQuestion.type === 'choose_multiple' || currentQuestion.type === 'choose_correct')
               &&
-              <ChooseAnswer 
-                currentQuestion={currentQuestion}
-                isAnswered={isAnswered}
-                isCorrect={isCorrect}
-                onSelectAnswer={(e) => selectAnswer(e)}
-                selectedAnswers={selectedAnswers}
-              />
+              <>
+                <h1>
+                  {currentQuestion.type === 'choose_multiple' && 'Select multiple'}
+                  {currentQuestion.type === 'choose_correct' && 'Select One Answer'}
+                </h1>
+                <ChooseAnswer 
+                  currentQuestion={currentQuestion}
+                  isAnswered={isAnswered}
+                  isCorrect={isCorrect}
+                  onSelectAnswer={(e) => selectAnswer(e)}
+                  selectedAnswers={selectedAnswers}
+                />
+              </>
             }
             {currentQuestion.type === 'fill_gap' && (
-              <FillGap
-                currentQuestion={currentQuestion}
-                onFillGap={(e) => selectAnswer(e)}
-                selectedAnswers={selectedAnswers}
-                isAnswered={isAnswered}
-              />
+              <>
+                <h1> Fille Gap</h1>
+                <FillGap
+                  currentQuestion={currentQuestion}
+                  onFillGap={(e) => selectAnswer(e)}
+                  selectedAnswers={selectedAnswers}
+                  isAnswered={isAnswered}
+                />
+              </>
             )}
             {currentQuestion.type === 'correct_incorrect' && (
-              <CorrectIncorrect
+              <>
+                <h1>Correct these wrong answers</h1>
+                <CorrectIncorrect
+                  currentQuestion={currentQuestion}
+                  onCorrectOption={(e) => selectAnswer(e)}
+                  selectedAnswers={selectedAnswers}
+                  isAnswered={isAnswered}
+                />
+              </>
+            )}
+            {currentQuestion.type === 'order_answers' && (
+              <>
+                <h1>Order the words</h1>
+                <OrderAnswers
                 currentQuestion={currentQuestion}
-                onCorrectOption={(e) => selectAnswer(e)}
-                selectedAnswers={selectedAnswers}
+                selectedAnswers={selectedAnswers.length ? selectedAnswers : currentQuestion.options.map((_, i) => i)}
+                onReorder={(newOrder) => selectAnswer(newOrder)}
                 isAnswered={isAnswered}
               />
+              </>
+            )}
+            {currentQuestion.type === 'recap_exercise' && (
+              <>
+                <h1>Classify the words</h1>
+                <ClassifyAnswers 
+                  currentQuestion={currentQuestion} 
+                  isAnswered={isAnswered} 
+                />
+
+              </>
             )}
           </div>
           {isAnswered && (

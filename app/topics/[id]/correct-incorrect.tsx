@@ -1,3 +1,5 @@
+import { Input } from "@/components/ui/input";
+
 export const CorrectIncorrect = ({
   currentQuestion,
   onCorrectOption,
@@ -12,7 +14,7 @@ export const CorrectIncorrect = ({
             <span className="text-sm font-bold">Incorrect Option:</span>
             <span>{option}</span>
           </div>
-          <input
+          <Input
             type="text"
             className="border rounded px-2 py-1 w-full"
             placeholder="Provide the correct answer"

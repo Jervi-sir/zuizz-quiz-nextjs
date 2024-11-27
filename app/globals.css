@@ -92,3 +92,20 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+
+
+.masonry {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px; /* Adjust spacing between items */
+}
+
+.masonry-item {
+  break-inside: avoid;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 8px;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
