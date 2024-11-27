@@ -1,0 +1,56 @@
+Testing
+Request for Single Answer (choose_correct):
+
+Get Questions for a Specific Topic
+
+curl -X GET http://localhost:3000/api/topics/1/questions
+
+
+Check an Answer (Single Choice)
+
+curl -X POST http://localhost:3000/api/topics/1/questions/check-answer \
+-H "Content-Type: application/json" \
+-d '{
+  "topicId": 1,
+  "questionId": 1,
+  "answer": 2
+}'
+
+
+Check an Answer (Multiple Choice)
+
+curl -X POST http://localhost:3000/api/topics/1/questions/check-answer \
+-H "Content-Type: application/json" \
+-d '{
+  "topicId": 1,
+  "questionId": 2,
+  "answer": [1, 2]
+}'
+
+
+Check an Answer (Order Answers)
+
+curl -X POST http://localhost:3000/api/topics/2/questions/check-answer \
+-H "Content-Type: application/json" \
+-d '{
+  "topicId": 2,
+  "questionId": 3,
+  "answer": [3, 1, 2, 0]
+}'
+
+
+Check an Answer (Fill the Gap)
+
+curl -X POST http://localhost:3000/api/topics/2/questions/check-answer \
+-H "Content-Type: application/json" \
+-d '{
+  "topicId": 2,
+  "questionId": 4,
+  "answer": "Linus Torvalds"
+}'
+
+
+Fetch a Specific Question (Optional Feature)
+
+curl -X GET http://localhost:3000/api/topics/1/questions/1
+
