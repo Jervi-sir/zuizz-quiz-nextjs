@@ -5,10 +5,13 @@ import React, { createContext, useContext, useState, ReactNode, useEffect } from
 interface Question {
   id: number;
   question: string;
-  type: string; // 'choose_correct' | 'choose_multiple' etc.
-  options: string[];
+  type: string; // 'choose_correct' | 'choose_multiple' | 'fill_gap' | 'correct_incorrect'
+  options?: string[];
   correctAnswer?: number;
   correctAnswers?: number[];
+  gaps?: Array<{ text: string; correctAnswer: string }>;
+  incorrectOptions?: string[]; // For correct_incorrect type
+  corrections?: string[]; // Expected corrections
 }
 
 interface QuizContextType {
@@ -40,36 +43,61 @@ export const QuizProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setQuestions(data);
   };
 
-  const selectAnswer = (index: number) => {
+  const selectAnswer = (indexOrAnswer: number | { incorrectIndex: number; correction: string }) => {
     if (isAnswered) return;
-
+  
     const currentQuestion = questions[currentQuestionIndex];
+  
     if (currentQuestion.type === 'choose_multiple') {
       setSelectedAnswers((prev) =>
-        prev.includes(index)
-          ? prev.filter((i) => i !== index) // Deselect if already selected
-          : [...prev, index] // Select if not already selected
+        typeof indexOrAnswer === 'number' && prev.includes(indexOrAnswer)
+          ? prev.filter((i) => i !== indexOrAnswer)
+          : [...prev, indexOrAnswer as number]
       );
-    } else {
-      setSelectedAnswers([index]); // Only one answer for 'choose_correct' or others
+    } else if (currentQuestion.type === 'choose_correct') {
+      setSelectedAnswers([indexOrAnswer as number]);
+    } else if (currentQuestion.type === 'fill_gap') {
+      if (typeof indexOrAnswer === 'object') {
+        setSelectedAnswers((prev) => {
+          const updated = [...prev];
+          updated[indexOrAnswer.gapIndex] = indexOrAnswer.answer;
+          return updated;
+        });
+      }
+    } else if (currentQuestion.type === 'correct_incorrect') {
+      if (typeof indexOrAnswer === 'object') {
+        setSelectedAnswers((prev) => {
+          const updated: any = [...prev];
+          updated[indexOrAnswer.incorrectIndex] = indexOrAnswer.correction;
+          return updated;
+        });
+      }
     }
   };
 
   const submitAnswer = () => {
     const currentQuestion = questions[currentQuestionIndex];
     let correct = false;
-
+  
     if (currentQuestion.type === 'choose_correct') {
       correct = selectedAnswers[0] === currentQuestion.correctAnswer;
     } else if (currentQuestion.type === 'choose_multiple') {
       correct =
         JSON.stringify([...selectedAnswers].sort()) ===
         JSON.stringify([...currentQuestion.correctAnswers!].sort());
+    } else if (currentQuestion.type === 'fill_gap') {
+      correct = currentQuestion.gaps!.every(
+        (gap, index) => selectedAnswers[index] === gap.correctAnswer
+      );
+    } else if (currentQuestion.type === 'correct_incorrect') {
+      correct = currentQuestion.corrections!.every(
+        (correction, index) => selectedAnswers[index] === correction
+      );
     }
-
+  
     setIsCorrect(correct);
     setIsAnswered(true);
-
+  
     if (correct) {
       setScore((prev) => prev + 1);
     }

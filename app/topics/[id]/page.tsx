@@ -8,6 +8,9 @@ import { Progress } from '@/components/ui/progress';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { FeedbackDrawer } from '@/components/custom/FeedbackDrawer';
+import { ChooseAnswer } from './choose-answer';
+import { FillGap } from './fill-gap';
+import { CorrectIncorrect } from './correct-incorrect';
 
 export default function TopicQuestions({ params }: { params: { id: string } }) {
   const {
@@ -58,25 +61,33 @@ export default function TopicQuestions({ params }: { params: { id: string } }) {
             <Progress value={(currentQuestionIndex / questions.length) * 100} />
           </div>
           <div className="pt-3 flex flex-col gap-3">
-            {currentQuestion.options.map((option, index) => (
-              <QuestionCard
-                key={index}
-                option={option}
-                index={index}
-                onChoose={() => selectAnswer(index)}
-                isCorrect={
-                  isAnswered
-                    ? isCorrect
-                      ? selectedAnswers.includes(index) // Show only the selected correct answer
-                      : currentQuestion.type === 'choose_multiple'
-                        ? currentQuestion.correctAnswers?.includes(index) // Show correct answers for multiple choice
-                        : index === currentQuestion.correctAnswer // Show correct answer for single choice
-                    : null
-                }
-                selected={selectedAnswers.includes(index)}
-                disabled={isAnswered}
+            {
+              (currentQuestion.type === 'choose_multiple' || currentQuestion.type === 'choose_correct')
+              &&
+              <ChooseAnswer 
+                currentQuestion={currentQuestion}
+                isAnswered={isAnswered}
+                isCorrect={isCorrect}
+                onSelectAnswer={(e) => selectAnswer(e)}
+                selectedAnswers={selectedAnswers}
               />
-            ))}
+            }
+            {currentQuestion.type === 'fill_gap' && (
+              <FillGap
+                currentQuestion={currentQuestion}
+                onFillGap={(e) => selectAnswer(e)}
+                selectedAnswers={selectedAnswers}
+                isAnswered={isAnswered}
+              />
+            )}
+            {currentQuestion.type === 'correct_incorrect' && (
+              <CorrectIncorrect
+                currentQuestion={currentQuestion}
+                onCorrectOption={(e) => selectAnswer(e)}
+                selectedAnswers={selectedAnswers}
+                isAnswered={isAnswered}
+              />
+            )}
           </div>
           {isAnswered && (
             <FeedbackDrawer
