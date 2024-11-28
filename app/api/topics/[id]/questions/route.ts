@@ -8,5 +8,12 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     return NextResponse.json({ message: 'Topic not found' }, { status: 404 });
   }
 
-  return NextResponse.json(topic.questions, { status: 200 });
+return NextResponse.json({
+  topic: {
+    id: topic.id,
+    name: topic.name,
+    icon: topic.icon,
+  },
+  questions: topic.questions
+}, { status: 200 });
 }

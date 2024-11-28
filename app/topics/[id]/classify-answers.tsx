@@ -11,26 +11,14 @@ import {
 import { useQuiz } from '@/context/QuizContext';
 import { CSS } from '@dnd-kit/utilities';
 
-interface Criterion {
-  text: string;
-  category: string; // Correct category
-}
-
-interface ClassifyAnswersProps {
-  currentQuestion: {
-    criteria: Criterion[];
-  };
-  isAnswered: boolean;
-}
-
 const DraggableItem: React.FC<{ id: string; text: string }> = ({ id, text }) => {
-  const { attributes, listeners, setNodeRef, transform, transition } = useDraggable({
+  const { attributes, listeners, setNodeRef, transform } = useDraggable({
     id,
   });
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition,
+    transition: transform ? "transform 200ms ease" : undefined, // Add transition manually
   };
 
   return (
@@ -54,14 +42,14 @@ const DroppableArea: React.FC<{ id: string; children: React.ReactNode }> = ({ id
   return (
     <div
       ref={setNodeRef}
-      className="border rounded p-4 min-h-[100px] flex gap-2 flex-wrap"
+      className="border rounded p-4 min-h-[100px] flex gap-2 flex-wrap flex-row-reverse"
     >
       {children}
     </div>
   );
 };
 
-export const ClassifyAnswers = ({ currentQuestion, isAnswered }) => {
+export const ClassifyAnswers = ({ currentQuestion }) => {
   const { selectAnswer, selectedAnswers } = useQuiz();
 
   const categories = Array.from(
@@ -83,12 +71,12 @@ export const ClassifyAnswers = ({ currentQuestion, isAnswered }) => {
     <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
       <div className="flex flex-col">
         <div className="flex gap-4">
-          {categories.map((category) => (
+          {categories.map((category: string) => (
             <div key={category} className="w-1/3">
-              <h3 className="font-bold mb-2">{category}</h3>
+              <h3 className="font-bold mb-2 text-center">{category}</h3>
               <DroppableArea id={category}>
                 {Object.entries(selectedAnswers)
-                  .filter(([text, assignedCategory]) => assignedCategory === category)
+                  .filter(([text, assignedCategory]) => assignedCategory === category) // eslint-disable-line @typescript-eslint/no-unused-vars
                   .map(([text]) => (
                     <DraggableItem key={text} id={text} text={text} />
                   ))}

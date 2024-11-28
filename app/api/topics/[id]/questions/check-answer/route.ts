@@ -9,7 +9,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ message: 'Topic not found' }, { status: 404 });
   }
 
-  const question = topic.questions.find((q) => q.id === parseInt(questionId));
+  const question: any = topic.questions.find((q) => q.id === parseInt(questionId)); // eslint-disable-line @typescript-eslint/no-explicit-any
   if (!question) {
     return NextResponse.json({ message: 'Question not found' }, { status: 404 });
   }
@@ -27,8 +27,8 @@ export async function POST(req: Request) {
         answer.sort().join(',') === question.correctAnswers.sort().join(',');
       break;
 
-    case 'fill_gap':
-      isCorrect = (question.correctAnswer as any).toLowerCase() === answer.toLowerCase();
+    case 'fill_gap': 
+      isCorrect = (question.correctAnswer as any).toLowerCase() === answer.toLowerCase(); // eslint-disable-line @typescript-eslint/no-explicit-any
       break;
 
     case 'order_answers':

@@ -1,5 +1,4 @@
 import { ChevronsRightIcon, TimerIcon } from "lucide-react";
-import { Button } from "./ui/button";
 
 export const GameOptions = () => {
   return (

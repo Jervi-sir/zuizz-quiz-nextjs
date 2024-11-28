@@ -39,15 +39,15 @@ export const QuestionCard = ({
     >
       <Card>
         <CardHeader className="p-4 rounde-xl">
-          <div className="relative flex items-start gap-3 rounded">
-            <Button variant="outline" size="sm">
-              {Alphabet[index]}
-            </Button>
+          <div className="relative flex items-start justify-end gap-3 rounded">
             <div className="pt-[5px]">
               <CardDescription>{option}</CardDescription>
             </div>
+            <Button variant="outline" size="sm">
+              {Alphabet[index]}
+            </Button>
             {isCorrect !== null && (
-              <div className="absolute right-0 top-1">
+              <div className="absolute left-0 top-1">
                 {isCorrect 
                   ? <CheckCircle color="green" /> 
                   : (

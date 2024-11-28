@@ -9,11 +9,11 @@ const Subject = ({ topic }) => {
       <a href={`/topics/${topic.id}`}>
         <Card >
           <CardHeader className="p-4">
-            <div className="relative flex items-start gap-3">
-              <Button variant="outline" size="sm">
+            <div className="relative flex items-start justify-between gap-3">
+              <Button variant="outline" className="bg-white">
                 <Image src={topic.icon} alt="arrow" width={30} height={30} />
               </Button>
-              <div className="pt-[5px]">
+              <div className="pt-[6px] text-right">
                 <CardDescription>{topic.name}</CardDescription>
               </div>
             </div>

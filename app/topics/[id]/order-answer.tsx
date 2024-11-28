@@ -33,18 +33,18 @@ export const OrderAnswers: React.FC<OrderAnswersProps> = ({
   onReorder,
   isAnswered,
 }) => {
-  const [activeId, setActiveId] = useState<string | null>(null);
+  const [activeId, setActiveId] = useState<string | null>(null); // eslint-disable-line @typescript-eslint/no-unused-vars
 
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor)
   );
 
-  const handleDragStart = (event: any) => {
+  const handleDragStart = (event: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
     setActiveId(event.active.id);
   };
 
-  const handleDragEnd = (event: any) => {
+  const handleDragEnd = (event: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
     const { active, over } = event;
     setActiveId(null);
 
@@ -108,7 +108,7 @@ const SortableItem: React.FC<SortableItemProps> = ({ id, text, isAnswered }) => 
       style={style}
       {...attributes}
       {...listeners}
-      className={`border rounded px-4 py-2 bg-black shadow-sm ${
+      className={`border rounded px-4 py-2 text-right bg-black shadow-sm ${
         isAnswered ? 'cursor-not-allowed' : 'cursor-move'
       }`}
     >

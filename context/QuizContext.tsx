@@ -21,25 +21,34 @@ interface QuizContextType {
   currentQuestionIndex: number;
   selectedAnswers: any[]; // Generic type to handle different types of answers
   isAnswered: boolean;
+  isQuizCompleted: boolean;
+  currentTopic: string | null;
   isCorrect: boolean | null;
   score: number;
   fetchQuestions: (topicId: string) => Promise<void>;
+  resetCurrentTopicTitle: () => void;
   selectAnswer: (answer: any) => void; // Generic type to handle different types of answers
   submitAnswer: () => void;
   goToNextQuestion: () => void;
+
 }
 
 const QuizContext = createContext<QuizContextType | undefined>(undefined);
 
 export const QuizProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [currentTopic, setCurrentTopic] = useState(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [selectedAnswers, setSelectedAnswers] = useState<any[]>([]);
+  const [selectedAnswers, setSelectedAnswers] = useState<any[]>([]); // Scoped per question
   const [isAnswered, setIsAnswered] = useState(false);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [score, setScore] = useState(0);
+  const [isQuizCompleted, setIsQuizCompleted] = useState(false);
 
-  // Initialize answers based on question type
+  const resetCurrentTopicTitle = () => {
+    setCurrentTopic(null);
+  }
+  // Utility to initialize `selectedAnswers` per question
   const initializeAnswers = (questions: Question[]) =>
     questions.map((question) => {
       switch (question.type) {
@@ -52,108 +61,98 @@ export const QuizProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           });
           return criteriaState;
         default:
-          return [];
+          return []; // Default empty answer array
       }
     });
 
-  // Fetch questions and initialize state
   const fetchQuestions = async (topicId: string) => {
     const response = await fetch(`/api/topics/${topicId}/questions`);
     const data = await response.json();
-    setQuestions(data);
+    setCurrentTopic(data.topic.name);
+    setQuestions(data.questions);
     setSelectedAnswers(initializeAnswers(data));
   };
 
-  // Handle selecting an answer based on question type
   const selectAnswer = (answer: any) => {
     if (isAnswered) return;
 
     const currentQuestion = questions[currentQuestionIndex];
-
-    switch (currentQuestion.type) {
-      case 'recap_exercise':
-        setSelectedAnswers((prev: any) => ({
-          ...prev,
-          [answer.text]: answer.category,
-        }));
-        break;
-
-      case 'choose_multiple':
-        setSelectedAnswers((prev) =>
-          typeof answer === 'number' && prev.includes(answer)
-            ? prev.filter((i) => i !== answer)
-            : [...prev, answer]
-        );
-        break;
-
-      case 'choose_correct':
-        setSelectedAnswers([answer]);
-        break;
-
-      case 'fill_gap':
-        setSelectedAnswers((prev) => {
-          const updated = [...prev];
-          updated[answer.gapIndex] = answer.answer;
-          return updated;
-        });
-        break;
-
-      case 'correct_incorrect':
-        setSelectedAnswers((prev) => {
-          const updated = [...prev];
-          updated[answer.incorrectIndex] = answer.correction;
-          return updated;
-        });
-        break;
-
-      case 'order_answers':
-        setSelectedAnswers(answer);
-        break;
-
-      default:
-        break;
-    }
+    setSelectedAnswers((prev) => {
+      const updated = [...prev];
+      switch (currentQuestion.type) {
+        case 'recap_exercise':
+          updated[currentQuestionIndex] = {
+            ...updated[currentQuestionIndex],
+            [answer.text]: answer.category,
+          };
+          break;
+        case 'choose_multiple':
+          updated[currentQuestionIndex] = updated[currentQuestionIndex]?.includes(answer)
+            ? updated[currentQuestionIndex].filter((i: number) => i !== answer) // Deselect
+            : [...(updated[currentQuestionIndex] || []), answer]; // Select
+          break;
+        case 'choose_correct':
+          updated[currentQuestionIndex] = [answer];
+          break;
+        case 'fill_gap':
+          updated[currentQuestionIndex] = {
+            ...(updated[currentQuestionIndex] || {}),
+            [answer.gapIndex]: answer.answer,
+          };
+          break;
+        case 'correct_incorrect':
+          updated[currentQuestionIndex] = {
+            ...(updated[currentQuestionIndex] || {}),
+            [answer.incorrectIndex]: answer.correction,
+          };
+          break;
+        case 'order_answers':
+          updated[currentQuestionIndex] = answer;
+          break;
+        default:
+          break;
+      }
+      return updated;
+    });
   };
 
-  // Validate and submit the current answer
+  const arraysAreEqual = (arr1: number[], arr2: number[]) => {
+    if (arr1.length !== arr2.length) return false;
+    const sorted1 = [...arr1].sort();
+    const sorted2 = [...arr2].sort();
+    return sorted1.every((value, index) => value === sorted2[index]);
+  };
+
   const submitAnswer = () => {
     const currentQuestion = questions[currentQuestionIndex];
+    const currentAnswers = selectedAnswers[currentQuestionIndex];
     let correct = false;
 
     switch (currentQuestion.type) {
       case 'recap_exercise':
         correct = currentQuestion.criteria?.every(
-          (criterion) => selectedAnswers[criterion.text] === criterion.category
+          (criterion) => currentAnswers[criterion.text] === criterion.category
         ) ?? false;
         break;
-
       case 'choose_correct':
-        correct = selectedAnswers[0] === currentQuestion.correctAnswer;
+        correct = currentAnswers[0] === currentQuestion.correctAnswer;
         break;
-
       case 'choose_multiple':
-        correct =
-          JSON.stringify([...selectedAnswers].sort()) ===
-          JSON.stringify([...currentQuestion.correctAnswers!].sort());
+        correct = arraysAreEqual(currentAnswers || [], currentQuestion.correctAnswers || []);
         break;
-
       case 'fill_gap':
         correct = currentQuestion.gaps?.every(
-          (gap, index) => selectedAnswers[index] === gap.correctAnswer
+          (gap, index) => currentAnswers[index] === gap.correctAnswer
         ) ?? false;
         break;
-
       case 'correct_incorrect':
         correct = currentQuestion.corrections?.every(
-          (correction, index) => selectedAnswers[index] === correction
+          (correction, index) => currentAnswers[index] === correction
         ) ?? false;
         break;
-
       case 'order_answers':
-        correct =
-          JSON.stringify(selectedAnswers) === JSON.stringify(currentQuestion.correctOrder);
+        correct = JSON.stringify(currentAnswers) === JSON.stringify(currentQuestion.correctOrder);
         break;
-
       default:
         break;
     }
@@ -166,15 +165,14 @@ export const QuizProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  // Move to the next question
   const goToNextQuestion = () => {
-    setSelectedAnswers([]);
-    setIsAnswered(false);
-    setIsCorrect(null);
-
-    setCurrentQuestionIndex((prevIndex) =>
-      prevIndex < questions.length - 1 ? prevIndex + 1 : prevIndex
-    );
+    if (currentQuestionIndex < questions.length - 1) {
+      setIsAnswered(false);
+      setIsCorrect(null);
+      setCurrentQuestionIndex((prev) => prev + 1);
+    } else {
+      setIsQuizCompleted(true);
+    }
   };
 
   return (
@@ -182,7 +180,7 @@ export const QuizProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       value={{
         questions,
         currentQuestionIndex,
-        selectedAnswers,
+        selectedAnswers: selectedAnswers[currentQuestionIndex] || [],
         isAnswered,
         isCorrect,
         score,
@@ -190,6 +188,9 @@ export const QuizProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         selectAnswer,
         submitAnswer,
         goToNextQuestion,
+        isQuizCompleted,
+        currentTopic,
+        resetCurrentTopicTitle
       }}
     >
       {children}

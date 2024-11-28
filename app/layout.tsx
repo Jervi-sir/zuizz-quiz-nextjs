@@ -38,14 +38,14 @@ export default function RootLayout({
           <SidebarProvider>
             <AppSidebar />
             <SidebarInset>
-              <AppHeader />
-              <div className="flex flex-1 flex-col gap-1 p-4 pt-0">
-                <GameProgressProvider>
-                  <QuizProvider>
+              <GameProgressProvider>
+                <QuizProvider>
+                  <AppHeader />
+                  <div className="flex flex-1 flex-col gap-1 p-4 pt-0 md:mx-auto ">
                     {children}
-                  </QuizProvider>
-                </GameProgressProvider>
-              </div>
+                  </div>
+                </QuizProvider>
+              </GameProgressProvider>
             </SidebarInset>
           </SidebarProvider>
         </ThemeProvider>

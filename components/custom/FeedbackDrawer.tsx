@@ -17,6 +17,7 @@ interface FeedbackDrawerProps {
   description: string; // A message or hint for the user
   score: number; // Current score
   onNext: () => void; // Function to navigate to the next question
+  corrections: string[];
 }
 
 export function FeedbackDrawer({
@@ -24,6 +25,7 @@ export function FeedbackDrawer({
   description,
   score,
   onNext,
+  corrections,
 }: FeedbackDrawerProps) {
   return (
     <Drawer open={true} dismissible={false}>
@@ -31,10 +33,22 @@ export function FeedbackDrawer({
         <div className="mx-auto w-full max-w-sm">
           <DrawerHeader>
             <DrawerTitle>
-              {isCorrect ? "Correct!" : "Incorrect"}
+              {isCorrect ? "صحيح!" : "غير صحيح"}
             </DrawerTitle>
             <DrawerDescription>{description}</DrawerDescription>
           </DrawerHeader>
+          {corrections && (
+            <div className="mt-4">
+              <h3 className="text-lg font-semibold text-right">: التصحيحات</h3>
+              <ul className="list-disc list-inside">
+                {corrections.map((correction, index) => (
+                  <div key={index} className="text-green-700 text-right">
+                    {correction}
+                  </div>
+                ))}
+              </ul>
+            </div>
+          )}
           <div className="p-4 pb-0">
             <div className="flex items-center justify-center space-x-2">
               <div className="flex-1 text-center">
@@ -46,14 +60,14 @@ export function FeedbackDrawer({
                   {isCorrect ? "✅" : "❌"}
                 </div>
                 <div className="text-[0.70rem] uppercase text-muted-foreground">
-                  Current Score: {score}
+                النتيجة الحالية: {score}
                 </div>
               </div>
             </div>
           </div>
           <DrawerFooter>
             <DrawerClose asChild>
-              <Button onClick={onNext}>Next</Button>
+              <Button onClick={onNext}>التالي</Button>
             </DrawerClose>
           </DrawerFooter>
         </div>

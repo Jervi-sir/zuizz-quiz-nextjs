@@ -2,7 +2,6 @@
 
 import { useEffect } from 'react';
 import { useQuiz } from '@/context/QuizContext';
-import { QuestionCard } from '@/components/QuestionCard';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import Link from 'next/link';
@@ -13,6 +12,7 @@ import { FillGap } from './fill-gap';
 import { CorrectIncorrect } from './correct-incorrect';
 import { OrderAnswers } from './order-answer';
 import { ClassifyAnswers } from './classify-answers';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function TopicQuestions({ params }: { params: { id: string } }) {
   const {
@@ -26,6 +26,8 @@ export default function TopicQuestions({ params }: { params: { id: string } }) {
     selectAnswer,
     submitAnswer,
     goToNextQuestion,
+    isQuizCompleted,
+    resetCurrentTopicTitle
   } = useQuiz();
 
   useEffect(() => {
@@ -33,30 +35,43 @@ export default function TopicQuestions({ params }: { params: { id: string } }) {
   }, [params.id]);
 
   if (questions.length === 0) {
-    return <p>Loading...</p>;
+    return (
+      <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min md:w-[500px] p-1 space-y-3">
+        <Skeleton className='aspect-video' />
+        <p className='text-center'>تحميل...</p>
+        <Skeleton className='h-[60px]' />
+        <Skeleton className='h-[60px]' />
+        <Skeleton className='h-[60px]' />
+      </div>
+
+    );
   }
+
 
   const currentQuestion = questions[currentQuestionIndex];
 
-  if (currentQuestionIndex >= questions.length) {
+  if (currentQuestionIndex >= questions.length || isQuizCompleted) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
-        <h1 className="text-3xl font-bold">Quiz Completed!</h1>
-        <p className="text-lg">Your Score: {score} / {questions.length}</p>
+        <h1 className="text-3xl font-bold">تم الانتهاء من الاختبار!</h1>
+        <p className="text-lg">
+        نقاطك: <span>{score} / {questions.length}</span>
+        </p>
         <Link href="/topics">
-          <Button className="mt-4">Back to Topics</Button>
+          <Button className="mt-4" onClick={resetCurrentTopicTitle}>العودة إلى المواضيع</Button>
         </Link>
       </div>
     );
   }
+  
 
   return (
     <div>
-      <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min">
+      <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min md:mx-auto md:max-w-[500px]">
         <div className="p-1">
           <Card>
             <CardContent className="flex aspect-video items-center justify-center p-6">
-              <span className="text-4xl font-semibold">{currentQuestion.question}</span>
+              <span className="text-4xl font-semibold text-right">{currentQuestion.question}</span>
             </CardContent>
           </Card>
           <div className="p-1 pt-4">
@@ -68,8 +83,8 @@ export default function TopicQuestions({ params }: { params: { id: string } }) {
               &&
               <>
                 <h1>
-                  {currentQuestion.type === 'choose_multiple' && 'Select multiple'}
-                  {currentQuestion.type === 'choose_correct' && 'Select One Answer'}
+                  {currentQuestion.type === 'choose_multiple' && 'اختر متعدد'}
+                  {currentQuestion.type === 'choose_correct' && 'اختر إجابة واحدة'}
                 </h1>
                 <ChooseAnswer 
                   currentQuestion={currentQuestion}
@@ -82,7 +97,7 @@ export default function TopicQuestions({ params }: { params: { id: string } }) {
             }
             {currentQuestion.type === 'fill_gap' && (
               <>
-                <h1> Fille Gap</h1>
+                <h1> ملء الفراغ</h1>
                 <FillGap
                   currentQuestion={currentQuestion}
                   onFillGap={(e) => selectAnswer(e)}
@@ -93,7 +108,7 @@ export default function TopicQuestions({ params }: { params: { id: string } }) {
             )}
             {currentQuestion.type === 'correct_incorrect' && (
               <>
-                <h1>Correct these wrong answers</h1>
+                <h1>صحح هذه الإجابات الخاطئة</h1>
                 <CorrectIncorrect
                   currentQuestion={currentQuestion}
                   onCorrectOption={(e) => selectAnswer(e)}
@@ -104,21 +119,21 @@ export default function TopicQuestions({ params }: { params: { id: string } }) {
             )}
             {currentQuestion.type === 'order_answers' && (
               <>
-                <h1>Order the words</h1>
+                <h1>ترتيب الكلمات</h1>
                 <OrderAnswers
-                currentQuestion={currentQuestion}
-                selectedAnswers={selectedAnswers.length ? selectedAnswers : currentQuestion.options.map((_, i) => i)}
-                onReorder={(newOrder) => selectAnswer(newOrder)}
-                isAnswered={isAnswered}
-              />
+                  currentQuestion={currentQuestion as any} // eslint-disable-line @typescript-eslint/no-explicit-any
+                  selectedAnswers={selectedAnswers.length ? selectedAnswers : currentQuestion.options.map((_, i) => i)}
+                  onReorder={(newOrder) => selectAnswer(newOrder)}
+                  isAnswered={isAnswered}
+                />
               </>
             )}
             {currentQuestion.type === 'recap_exercise' && (
               <>
-                <h1>Classify the words</h1>
+                <h1>تصنيف الكلمات</h1>
                 <ClassifyAnswers 
                   currentQuestion={currentQuestion} 
-                  isAnswered={isAnswered} 
+                  // isAnswered={isAnswered} 
                 />
 
               </>
@@ -129,9 +144,10 @@ export default function TopicQuestions({ params }: { params: { id: string } }) {
               isCorrect={isCorrect!}
               description={
                 isCorrect
-                  ? "Well done! You got the right answer."
-                  : "Better luck next time! See the correct answer above."
+                  ? "أحسنت! لقد حصلت على الإجابة الصحيحة."
+                  : "حظا أوفر في المرة القادمة! انظر الإجابة الصحيحة أدناه."
               }
+              corrections={!isCorrect ? currentQuestion.corrections : undefined} // Show corrections if incorrect
               score={score}
               onNext={goToNextQuestion}
             />
@@ -139,7 +155,7 @@ export default function TopicQuestions({ params }: { params: { id: string } }) {
           {!isAnswered && (
             <div className="flex justify-end pt-4">
               <Button onClick={submitAnswer} disabled={selectedAnswers.length === 0}>
-                Answer
+              إجابة
               </Button>
             </div>
           )}
