@@ -27,8 +27,8 @@ const DraggableItem: React.FC<{ id: string; text: string }> = ({ id, text }) => 
       style={style}
       {...listeners}
       {...attributes}
-      className="bg-black border rounded px-4 py-2 shadow cursor-pointer"
-    >
+      className="bg-black border rounded px-4 py-2 shadow cursor-pointer draggable"
+      >
       {text}
     </div>
   );
@@ -42,7 +42,7 @@ const DroppableArea: React.FC<{ id: string; children: React.ReactNode }> = ({ id
   return (
     <div
       ref={setNodeRef}
-      className="border rounded p-4 min-h-[100px] flex gap-2 flex-wrap flex-row-reverse"
+      className="border rounded p-4 min-h-[100px] flex gap-2 flex-wrap flex-row-reverse select-none"
     >
       {children}
     </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 
 interface Question {
   id: number;
@@ -14,6 +14,7 @@ interface Question {
   corrections?: string[];
   correctOrder?: number[];
   criteria?: Array<{ text: string; category: string }>;
+  sentences?: Array<{ options: string[]; correctOrder: number[] }>;
 }
 
 interface QuizContextType {
@@ -30,16 +31,18 @@ interface QuizContextType {
   selectAnswer: (answer: any) => void; // Generic type to handle different types of answers
   submitAnswer: () => void;
   goToNextQuestion: () => void;
-
+  saveScoreToLocalStorage: () => void;
+  getSavedScores: () => { topic: string; score: number; date: string }[];
+  clearSavedScores: () => void;
 }
 
 const QuizContext = createContext<QuizContextType | undefined>(undefined);
 
 export const QuizProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [questions, setQuestions] = useState<Question[]>([]);
-  const [currentTopic, setCurrentTopic] = useState(null);
+  const [currentTopic, setCurrentTopic] = useState<string | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [selectedAnswers, setSelectedAnswers] = useState<any[]>([]); // Scoped per question
+  const [selectedAnswers, setSelectedAnswers] = useState<any[]>([]);
   const [isAnswered, setIsAnswered] = useState(false);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [score, setScore] = useState(0);
@@ -47,13 +50,13 @@ export const QuizProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const resetCurrentTopicTitle = () => {
     setCurrentTopic(null);
-  }
-  // Utility to initialize `selectedAnswers` per question
+  };
+
   const initializeAnswers = (questions: Question[]) =>
     questions.map((question) => {
       switch (question.type) {
         case 'order_answers':
-          return question.options?.map((_, i) => i) || [];
+          return question.sentences?.map(() => []) || [];
         case 'recap_exercise':
           const criteriaState: Record<string, string> = {};
           question.criteria?.forEach((criterion) => {
@@ -61,7 +64,7 @@ export const QuizProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           });
           return criteriaState;
         default:
-          return []; // Default empty answer array
+          return [];
       }
     });
 
@@ -70,7 +73,7 @@ export const QuizProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const data = await response.json();
     setCurrentTopic(data.topic.name);
     setQuestions(data.questions);
-    setSelectedAnswers(initializeAnswers(data));
+    setSelectedAnswers(initializeAnswers(data.questions));
   };
 
   const selectAnswer = (answer: any) => {
@@ -88,8 +91,8 @@ export const QuizProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           break;
         case 'choose_multiple':
           updated[currentQuestionIndex] = updated[currentQuestionIndex]?.includes(answer)
-            ? updated[currentQuestionIndex].filter((i: number) => i !== answer) // Deselect
-            : [...(updated[currentQuestionIndex] || []), answer]; // Select
+            ? updated[currentQuestionIndex].filter((i: number) => i !== answer)
+            : [...(updated[currentQuestionIndex] || []), answer];
           break;
         case 'choose_correct':
           updated[currentQuestionIndex] = [answer];
@@ -118,9 +121,7 @@ export const QuizProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const arraysAreEqual = (arr1: number[], arr2: number[]) => {
     if (arr1.length !== arr2.length) return false;
-    const sorted1 = [...arr1].sort();
-    const sorted2 = [...arr2].sort();
-    return sorted1.every((value, index) => value === sorted2[index]);
+    return arr1.every((value, index) => value === arr2[index]);
   };
 
   const submitAnswer = () => {
@@ -151,7 +152,15 @@ export const QuizProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         ) ?? false;
         break;
       case 'order_answers':
-        correct = JSON.stringify(currentAnswers) === JSON.stringify(currentQuestion.correctOrder);
+        correct = currentQuestion.sentences?.every((sentence, index) => {
+          const selected = currentAnswers[index];
+          const correctOrder = sentence.correctOrder;
+          return (
+            Array.isArray(selected) &&
+            selected.length === correctOrder.length &&
+            selected.every((value, idx) => value === correctOrder[idx])
+          );
+        }) ?? false;
         break;
       default:
         break;
@@ -165,6 +174,37 @@ export const QuizProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  const saveScoreToLocalStorage = () => {
+    if (!currentTopic) return;
+  
+    const now = new Date();
+    const formattedDate = now.toLocaleString('en-GB', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    });
+  
+    const newRecord = {
+      topic: currentTopic,
+      score,
+      date: formattedDate,
+    };
+  
+    const existingRecords = JSON.parse(localStorage.getItem('quizScores') || '[]');
+    localStorage.setItem('quizScores', JSON.stringify([...existingRecords, newRecord]));
+  };
+
+  const getSavedScores = () => {
+    return JSON.parse(localStorage.getItem('quizScores') || '[]');
+  };
+
+  const clearSavedScores = () => {
+    localStorage.removeItem('quizScores');
+  };
+
   const goToNextQuestion = () => {
     if (currentQuestionIndex < questions.length - 1) {
       setIsAnswered(false);
@@ -172,6 +212,7 @@ export const QuizProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setCurrentQuestionIndex((prev) => prev + 1);
     } else {
       setIsQuizCompleted(true);
+      saveScoreToLocalStorage();
     }
   };
 
@@ -190,7 +231,10 @@ export const QuizProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         goToNextQuestion,
         isQuizCompleted,
         currentTopic,
-        resetCurrentTopicTitle
+        resetCurrentTopicTitle,
+        saveScoreToLocalStorage,
+        getSavedScores,
+        clearSavedScores,
       }}
     >
       {children}

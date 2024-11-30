@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { FeedbackDrawer } from '@/components/custom/FeedbackDrawer';
 import { ChooseAnswer } from './choose-answer';
-import { FillGap } from './fill-gap';
+import { FillGapSwappable } from './fill-gap';
 import { CorrectIncorrect } from './correct-incorrect';
 import { OrderAnswers } from './order-answer';
 import { ClassifyAnswers } from './classify-answers';
@@ -55,7 +55,7 @@ export default function TopicQuestions({ params }: { params: { id: string } }) {
       <div className="flex flex-col items-center justify-center min-h-screen">
         <h1 className="text-3xl font-bold">تم الانتهاء من الاختبار!</h1>
         <p className="text-lg">
-        نقاطك: <span>{score} / {questions.length}</span>
+          نقاطك: <span>{score} / {questions.length}</span>
         </p>
         <Link href="/topics">
           <Button className="mt-4" onClick={resetCurrentTopicTitle}>العودة إلى المواضيع</Button>
@@ -63,7 +63,7 @@ export default function TopicQuestions({ params }: { params: { id: string } }) {
       </div>
     );
   }
-  
+
 
   return (
     <div>
@@ -86,7 +86,7 @@ export default function TopicQuestions({ params }: { params: { id: string } }) {
                   {currentQuestion.type === 'choose_multiple' && 'اختر متعدد'}
                   {currentQuestion.type === 'choose_correct' && 'اختر إجابة واحدة'}
                 </h1>
-                <ChooseAnswer 
+                <ChooseAnswer
                   currentQuestion={currentQuestion}
                   isAnswered={isAnswered}
                   isCorrect={isCorrect}
@@ -98,8 +98,9 @@ export default function TopicQuestions({ params }: { params: { id: string } }) {
             {currentQuestion.type === 'fill_gap' && (
               <>
                 <h1> ملء الفراغ</h1>
-                <FillGap
+                <FillGapSwappable
                   currentQuestion={currentQuestion}
+
                   onFillGap={(e) => selectAnswer(e)}
                   selectedAnswers={selectedAnswers}
                   isAnswered={isAnswered}
@@ -121,9 +122,10 @@ export default function TopicQuestions({ params }: { params: { id: string } }) {
               <>
                 <h1>ترتيب الكلمات</h1>
                 <OrderAnswers
-                  currentQuestion={currentQuestion as any} // eslint-disable-line @typescript-eslint/no-explicit-any
-                  selectedAnswers={selectedAnswers.length ? selectedAnswers : currentQuestion.options.map((_, i) => i)}
-                  onReorder={(newOrder) => selectAnswer(newOrder)}
+                  currentQuestion={currentQuestion}
+                  onAnswerChange={(answers) => {
+                    selectAnswer(answers)
+                  }}
                   isAnswered={isAnswered}
                 />
               </>
@@ -131,9 +133,9 @@ export default function TopicQuestions({ params }: { params: { id: string } }) {
             {currentQuestion.type === 'recap_exercise' && (
               <>
                 <h1>تصنيف الكلمات</h1>
-                <ClassifyAnswers 
-                  currentQuestion={currentQuestion} 
-                  // isAnswered={isAnswered} 
+                <ClassifyAnswers
+                  currentQuestion={currentQuestion}
+                // isAnswered={isAnswered} 
                 />
 
               </>
@@ -155,7 +157,7 @@ export default function TopicQuestions({ params }: { params: { id: string } }) {
           {!isAnswered && (
             <div className="flex justify-end pt-4">
               <Button onClick={submitAnswer} disabled={selectedAnswers.length === 0}>
-              إجابة
+                إجابة
               </Button>
             </div>
           )}

@@ -93,7 +93,16 @@ body {
   }
 }
 
+/* Prevent text selection for draggable items */
+.draggable {
+  user-select: none; /* Disable text selection */
+  touch-action: none; /* Prevent scrolling while dragging */
+}
 
+/* Optional: Prevent highlighting when tapping on draggable items */
+.draggable:active {
+  outline: none;
+}
 
 .masonry {
   display: grid;
@@ -108,4 +117,33 @@ body {
   padding: 8px;
   background: white;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+
+.swappable-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.swappable-item {
+  cursor: grab;
+  background-color: #e5e7eb;
+  border-radius: 5px;
+  padding: 8px 12px;
+  text-align: center;
+}
+
+.swappable-slot {
+  background-color: #f9fafb;
+  border: 2px dashed #d1d5db;
+  border-radius: 5px;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.swappable-item:active {
+  cursor: grabbing;
 }
