@@ -198,11 +198,16 @@ export const QuizProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const getSavedScores = () => {
-    return JSON.parse(localStorage.getItem('quizScores') || '[]');
+    if (typeof window !== 'undefined') { // Ensure this runs only in the browser
+      return JSON.parse(localStorage.getItem('quizScores') || '[]');
+    }
+    return []; // Return an empty array during SSR
   };
 
   const clearSavedScores = () => {
-    localStorage.removeItem('quizScores');
+    if (typeof window !== 'undefined') { // Ensure this runs only in the browser
+      localStorage.removeItem('quizScores');
+    }
   };
 
   const goToNextQuestion = () => {
